@@ -1,141 +1,122 @@
-1. BULK INSERT maqsadini aniqlang va tushuntiring
--- BULK INSERT fayldan (masalan, .csv yoki .txt) SQL Server jadvaliga katta hajmdagi ma'lumotlarni tezda yuklash uchun ishlatiladi.
--- Bu qator-qator qo'shimchalarga qaraganda tezroq va tekis fayllarni import qilish uchun foydalidir.
+🟢 Easy-Level Tasks (10)
+-- 1. Define and explain the purpose of BULK INSERT in SQL Server
+-- BULK INSERT is used to quickly import large amounts of data 
+-- from a file (text, CSV, etc.) into a SQL Server table.
 
-2. SQL Serverga import qilinadigan to'rtta fayl formatini sanab o'ting
-1. CSV (.csv)
-2. Matn fayllari (.txt)
-3. Excel fayllari (.xls, .xlsx)
-4. XML fayllar (.xml)
+-- 2. List four file formats that can be imported into SQL Server:
+-- TXT, CSV, XLS/XLSX (Excel), XML, JSON.
 
-3. Mahsulotlar jadvalini yaratish
-JADVAL YARATING Mahsulotlar (
-ProductID INT ASOSIY KEY,
-Mahsulot nomi VARCHAR(50),
-Narxi DECIMAL(10,2)
+-- 3. Create Products table
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(50),
+    Price DECIMAL(10,2)
 );
 
-4. Uchta yozuvni kiriting
-INSERT INTO mahsulotlar (mahsulot identifikatori, mahsulot nomi, narxi)
-QIMMATLAR
-(1, "noutbuk", 1000.00),
-(2, “Klaviatura”, 50.00),
-(3, “Sichqoncha”, 25.00);
+-- 4. Insert three records into Products
+INSERT INTO Products (ProductID, ProductName, Price)
+VALUES (1, 'Laptop', 1500.00),
+       (2, 'Mouse', 20.50),
+       (3, 'Keyboard', 45.00);
 
-5. NULL va NOT NULL o'rtasidagi farq
--- NULL ustunda etishmayotgan yoki noma'lum qiymatlarga ega bo'lishi mumkinligini bildiradi.
--- NOT NULL ustun har doim qiymatga ega bo'lishini ta'minlaydi (bo'sh bo'lishi mumkin emas).
+-- 5. Difference between NULL and NOT NULL
+-- NULL means no value (missing/unknown).
+-- NOT NULL means the column must always have a value.
 
-6. ProductName ga UNIQUE cheklov qo'shing
-ALTER TABLE mahsulotlari
-QO'SHISH UQ_Mahsulot nomi UNIQUE (Mahsulot nomi);
+-- 6. Add UNIQUE constraint to ProductName
+ALTER TABLE Products
+ADD CONSTRAINT UQ_ProductName UNIQUE (ProductName);
 
-7. SQL so'rovida sharh yozing
--- Bu soʻrov narxi 100 dan yuqori boʻlgan barcha mahsulotlarni tanlaydi
-Narxi > 100 bo'lgan mahsulotlardan * TANLANING;
+-- 7. Write a comment in SQL query
+-- This query selects all data from Products table
+SELECT * FROM Products;
 
-8. CategoryID ustunini qo'shing
-ALTER TABLE mahsulotlari
-CategoryID INT qo'shish;
+-- 8. Add CategoryID column to Products
+ALTER TABLE Products
+ADD CategoryID INT;
 
-9. PK va UNIQUE bilan Categories jadvalini yarating
-JADVAL toifalarini yaratish (
-CategoryID INT ASOSIY KEY,
-CategoryName VARCHAR(50) UNIQUE
+-- 9. Create Categories table
+CREATE TABLE Categories (
+    CategoryID INT PRIMARY KEY,
+    CategoryName VARCHAR(50) UNIQUE
 );
 
-10. IDENTITY ustunining maqsadi
--- IDENTITY ko'pincha asosiy kalitlar uchun ishlatiladigan ustun uchun ketma-ket qiymatlarni avtomatik ravishda yaratadi.
--- Misol: IDENTITY(1,1) 1 dan boshlanadi va 1 ga ortadi.
+-- 10. Purpose of IDENTITY column
+-- IDENTITY automatically generates sequential numeric values 
+-- for a column (e.g., auto-increment for primary key).
 
-✅ 🟠 O'rta darajadagi vazifalar (10)
-1. Ma'lumotlarni import qilish uchun BULK INSERT dan foydalaning
--- Fayl yo'li ochiq va ishonchli ekanligiga ishonch hosil qiling.
-BULK INSERT Mahsulotlar
-"C:\Data\products.txt" dan
-BILAN (
-FIELDTERMINATOR = ',',
-ROWTERMINATOR = '\n',
-FIRSTROW = 2 -- Sarlavha qatorini o'tkazib yuborish
+🟠 Medium-Level Tasks (10)
+-- 1. BULK INSERT example
+BULK INSERT Products
+FROM 'C:\data\products.txt'
+WITH (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    FIRSTROW = 2
 );
 
-2. Kategoriyalarga havola qiluvchi mahsulotlarda EXT KALİT yarating
-ALTER TABLE mahsulotlari
-CHEKLASH FK_Mahsulotlar_Kategoriyalarini QO'SHING
-FOREIGN KALİT (CategoryID)
-ADABIYOTLAR Kategoriyalar(CategoryID);
+-- 2. Create FOREIGN KEY in Products
+ALTER TABLE Products
+ADD CONSTRAINT FK_Products_Categories
+FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID);
 
-3. ASOSIY KALIT va UNİKAL KALIT o'rtasidagi farq
--- ASOSIY KALT: Har bir satrni o'ziga xos tarzda aniqlaydi, NULLlarni o'z ichiga olmaydi, har bir jadvalda faqat bitta.
--- UNIQUE KEY: Shuningdek, o'ziga xoslikni ta'minlaydi, lekin bitta NULLga ruxsat berishi mumkin va jadvalda bir nechta noyob cheklovlar bo'lishi mumkin.
+-- 3. Difference between PRIMARY KEY and UNIQUE KEY
+-- PRIMARY KEY: uniquely identifies each row, only one allowed per table, NOT NULL enforced.
+-- UNIQUE KEY: ensures uniqueness of values, multiple allowed, allows one NULL.
 
-4. Narx > 0 uchun CHECK cheklovini qo'shing
-ALTER TABLE mahsulotlari
-CHEKLAVCHI CHK_NARX_Ijobiy TEKSHIRISHNI QO'SHISH (Narx > 0);
+-- 4. Add CHECK constraint (Price > 0)
+ALTER TABLE Products
+ADD CONSTRAINT CHK_Price CHECK (Price > 0);
 
-5. Birja ustunini qo'shing (NULL EMAS)
-ALTER TABLE mahsulotlari
+-- 5. Add Stock column (NOT NULL)
+ALTER TABLE Products
 ADD Stock INT NOT NULL DEFAULT 0;
 
-6. Narxdagi NULLni almashtirish uchun ISNULL dan foydalaning
-Mahsulot identifikatori, Mahsulot nomi, ISNULL(Narx, 0) NI Narx sifatida tanlang
-Mahsulotlardan;
+-- 6. Replace NULL values in Price with 0
+SELECT ProductID, ProductName, ISNULL(Price, 0) AS Price
+FROM Products;
 
-7. FOREIGN KEY ning maqsadi va qo'llanilishi
--- FOREIGN KALİT ikkita jadval o'rtasida havolalar yaxlitligini ta'minlaydi.
--- U bir jadvaldagi ustunni boshqasidagi asosiy kalit bilan bog'laydi va ma'lumotlarning noto'g'ri kiritilishini oldini oladi.
+-- 7. Purpose of FOREIGN KEY
+-- FOREIGN KEY links two tables, enforcing referential integrity (ensures data consistency).
 
-✅ 🔴 Qiyin darajadagi vazifalar (10)
-1. Yosh >= 18 uchun CHECK cheklovi bilan mijozlar jadvalini yarating
-Jadval yaratish mijozlar (
-Mijoz ID INT ASOSIY KEY,
-Ismi VARCHAR(50),
-Yosh INT CHECK (Yosh >= 18)
+🔴 Hard-Level Tasks (10)
+-- 1. Create Customers table with CHECK constraint
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Age INT CHECK (Age >= 18)
 );
 
-2. 100 dan boshlanib, 10 ga ortib, IDENTITY ustunli jadval tuzing
-JADVAL YARATISH Invoys Numbers (
-InvoiceID INT IDENTITY(100,10) ASOSIY KALT,
-InvoiceSana DATE
+-- 2. Create table with IDENTITY (start at 100, increment by 10)
+CREATE TABLE Orders (
+    OrderID INT IDENTITY(100, 10) PRIMARY KEY,
+    OrderDate DATE
 );
 
-3. OrderDetails-da kompozit PRIMARY KEY yarating
-JADVAL YARATISH Buyurtma tafsilotlari (
-Buyurtma identifikatori INT,
-Mahsulot ID INT,
-INT miqdori,
-ASOSIY KALT (Buyurtma identifikatori, mahsulot identifikatori)
+-- 3. Composite PRIMARY KEY in OrderDetails
+CREATE TABLE OrderDetails (
+    OrderID INT,
+    ProductID INT,
+    Quantity INT,
+    PRIMARY KEY (OrderID, ProductID)
 );
 
-4. COALESCE va ISNULLni tushuntiring
--- ISNULL(ifoda, almashtirish): NULLni almashtirish qiymati bilan almashtiradi (faqat 2 ta argument)
--- COALESCE(expr1, expr2, ..., exprN): Ro'yxatdagi birinchi NULL bo'lmagan qiymatni qaytaradi
+-- 4. Explain COALESCE and ISNULL
+-- ISNULL(expression, value) → replaces NULL with specified value.
+-- COALESCE(expr1, expr2, ...) → returns first non-NULL value from list.
 
--- Misol:
-SELECT ISNULL(NULL, 'Standart'); -- "Standart"ni qaytaradi
-SELECT COALESCE(NULL, NULL, 'X'); -- 'X' qaytaradi
-
-5. PRIMARY va UNIQUE kalitlari bilan Xodimlar jadvalini yarating
-JADVAL YARATISH Xodimlar (
-EmpID INT ASOSIY kalit,
-Ismi VARCHAR(50),
-Elektron pochta VARCHAR(100) UNIQUE
+-- 5. Employees table with PRIMARY KEY and UNIQUE KEY
+CREATE TABLE Employees (
+    EmpID INT PRIMARY KEY,
+    EmpName VARCHAR(50),
+    Email VARCHAR(100) UNIQUE
 );
 
-6. ON DELETE/UPDATE CASCADE bilan FOREIGN KEY
--- Birinchidan, ota-ona jadvali
-JADVAL bo'limlarini yaratish (
-DeptID INT ASOSIY KEY,
-DeptName VARCHAR(50)
-);
-
--- Keyin, bolalar stoli
-JADVAL YARATISH Xodimlar (
-Xodimlar ID INT ASOSIY kalit,
-Xodim nomi VARCHAR(50),
-DeptID INT,
-CHEKLASH FK_Staff_Departments EXT KALİT (DeptID)
-ADABIYOTLAR Bo'limlar (DeptID)
-CASKADNI O‘CHIRIShDA
-YANGILANISHDA CASKAD
+-- 6. FOREIGN KEY with ON DELETE CASCADE, ON UPDATE CASCADE
+CREATE TABLE OrdersCascade (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
