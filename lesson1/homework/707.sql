@@ -1,4 +1,4 @@
- Easy
+Easy
 1. Define the following terms:
 
 Data:
