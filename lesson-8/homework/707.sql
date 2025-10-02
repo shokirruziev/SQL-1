@@ -1,137 +1,179 @@
-✅ 1-qism: Exception Handling (SQL’da TRY...CATCH bilan)
-1. ZeroDivisionError (Divide by zero)
-BEGIN TRY
-    SELECT 10 / 0 AS Result;
-END TRY
-BEGIN CATCH
-    PRINT 'Error: Division by zero!';
-END CATCH;
+Easy-Level Tasks
 
-2. ValueError (integer emas bo‘lsa)
+1. Kategoriyaga qarab nechta mahsulot borligini topish:
 
-SQL’da CONVERT yoki TRY_CAST ishlatiladi:
+SELECT Category, COUNT(*) AS TotalProducts
+FROM Products
+GROUP BY Category;
 
-DECLARE @val NVARCHAR(50) = 'abc';
-BEGIN TRY
-    SELECT CONVERT(INT, @val) AS Result;
-END TRY
-BEGIN CATCH
-    PRINT 'Error: Not a valid integer!';
-END CATCH;
 
-3. FileNotFoundError
+2. Electronics kategoriyasidagi mahsulotlarning o‘rtacha narxi:
 
-SQL’da faylni o‘qishda BULK INSERT ishlatiladi:
+SELECT AVG(Price) AS AvgPrice
+FROM Products
+WHERE Category = 'Electronics';
 
-BEGIN TRY
-    BULK INSERT MyTable
-    FROM 'C:\data\non_existing_file.txt'
-    WITH (ROWTERMINATOR = '\n');
-END TRY
-BEGIN CATCH
-    PRINT 'Error: File not found!';
-END CATCH;
 
-4. TypeError (raqam emas bo‘lsa)
-DECLARE @a NVARCHAR(50) = '10a';
-DECLARE @b NVARCHAR(50) = '5';
-BEGIN TRY
-    SELECT CAST(@a AS INT) + CAST(@b AS INT);
-END TRY
-BEGIN CATCH
-    PRINT 'Error: Inputs must be numeric!';
-END CATCH;
+3. Shahri L harfi bilan boshlanadigan mijozlar:
 
-5. PermissionError (fayl ruxsati yo‘q bo‘lsa)
-BEGIN TRY
-    BULK INSERT MyTable
-    FROM 'C:\Windows\system32\config\secret.txt'
-    WITH (ROWTERMINATOR = '\n');
-END TRY
-BEGIN CATCH
-    PRINT 'Error: Permission denied!';
-END CATCH;
+SELECT *
+FROM Customers
+WHERE City LIKE 'L%';
 
-6. IndexError (index out of range)
 
-SQL’da massiv yo‘q, lekin row number orqali tekshirish mumkin:
+4. Nomi er bilan tugaydigan mahsulotlar:
 
-BEGIN TRY
-    ;WITH cte AS (
-        SELECT ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS rn, name 
-        FROM sys.objects
-    )
-    SELECT name FROM cte WHERE rn = 999999; -- mavjud bo‘lmagan index
-END TRY
-BEGIN CATCH
-    PRINT 'Error: Index out of range!';
-END CATCH;
+SELECT ProductName
+FROM Products
+WHERE ProductName LIKE '%er';
 
-7. KeyboardInterrupt (foydalanuvchi bekor qilsa)
 
-SQL’da bunday emas, lekin timeout yoki KILL SESSION orqali o‘xshash holat bo‘lishi mumkin. CATCH orqali yozamiz:
+5. Davlati A bilan tugaydigan mijozlar:
 
-BEGIN TRY
-    WAITFOR DELAY '00:00:05'; -- vaqtni kutadi
-END TRY
-BEGIN CATCH
-    PRINT 'Error: Query was interrupted!';
-END CATCH;
+SELECT *
+FROM Customers
+WHERE Country LIKE '%A';
 
-8. ArithmeticError
-BEGIN TRY
-    SELECT SQRT(-1) AS BadMath;
-END TRY
-BEGIN CATCH
-    PRINT 'Error: Arithmetic error!';
-END CATCH;
 
-9. UnicodeDecodeError (encoding masalasi)
-BEGIN TRY
-    BULK INSERT MyTable
-    FROM 'C:\data\utf16_file.txt'
-    WITH (DATAFILETYPE = 'widechar'); -- noto‘g‘ri kodlash bo‘lsa xato
-END TRY
-BEGIN CATCH
-    PRINT 'Error: Unicode decode error!';
-END CATCH;
+6. Eng qimmat mahsulot narxi:
 
-10. AttributeError (mavjud bo‘lmagan ustun)
-BEGIN TRY
-    SELECT NonExistingColumn FROM sys.objects;
-END TRY
-BEGIN CATCH
-    PRINT 'Error: Attribute (column) does not exist!';
-END CATCH;
+SELECT MAX(Price) AS HighestPrice
+FROM Products;
 
-✅ 2-qism: File Input/Output (SQL’da BULK INSERT va OPENROWSET)
-1. Faylni to‘liq o‘qish
-SELECT * 
-FROM OPENROWSET(BULK 'C:\data\myfile.txt', SINGLE_CLOB) AS FileContent;
 
-2. Faylning birinchi n qatori
-;WITH Lines AS (
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS rn, value
-    FROM OPENROWSET(BULK 'C:\data\myfile.txt', SINGLE_CLOB) AS f
-    CROSS APPLY STRING_SPLIT(f.BulkColumn, CHAR(10))
-)
-SELECT TOP 5 * FROM Lines; -- birinchi 5 qator
+7. Zaxira miqdoriga qarab status chiqarish:
 
-3. Faylga matn qo‘shish (append)
+SELECT ProductName,
+       CASE WHEN StockQuantity < 30 THEN 'Low Stock'
+            ELSE 'Sufficient' END AS StockStatus
+FROM Products;
 
-SQL bevosita yozolmaydi, lekin xp_cmdshell orqali yozish mumkin:
 
-EXEC xp_cmdshell 'echo Yangi qator >> C:\data\myfile.txt';
+8. Har bir davlatdagi mijozlar soni:
 
-4. Faylning oxirgi n qatori
-;WITH Lines AS (
-    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS rn, value
-    FROM OPENROWSET(BULK 'C:\data\myfile.txt', SINGLE_CLOB) AS f
-    CROSS APPLY STRING_SPLIT(f.BulkColumn, CHAR(10))
-)
-SELECT TOP 5 * FROM Lines ORDER BY rn DESC; -- oxirgi 5 qator
+SELECT Country, COUNT(*) AS TotalCustomers
+FROM Customers
+GROUP BY Country;
 
-5. Faylni qatorma-qator listga o‘qish
-SELECT value AS Line
-FROM OPENROWSET(BULK 'C:\data\myfile.txt', SINGLE_CLOB) AS f
-CROSS APPLY STRING_SPLIT(f.BulkColumn, CHAR(10));
+
+9. Buyurtmalarda minimal va maksimal miqdor:
+
+SELECT MIN(Quantity) AS MinQuantity, MAX(Quantity) AS MaxQuantity
+FROM Orders;
+
+✅ Medium-Level Tasks
+
+10. 2023 yil yanvar oyida buyurtma bergan, lekin faktura olinmagan mijozlar:
+
+SELECT DISTINCT o.CustomerID
+FROM Orders o
+WHERE YEAR(o.OrderDate) = 2023 AND MONTH(o.OrderDate) = 1
+AND o.CustomerID NOT IN (
+    SELECT CustomerID FROM Invoices
+    WHERE YEAR(InvoiceDate) = 2023 AND MONTH(InvoiceDate) = 1
+);
+
+
+11. Ikki jadvaldagi productlarni birlashtirish (duplikatlar bilan):
+
+SELECT ProductName FROM Products
+UNION ALL
+SELECT ProductName FROM Products_Discounted;
+
+
+12. Ikki jadvaldagi productlarni birlashtirish (duplikatlarni olib tashlash):
+
+SELECT ProductName FROM Products
+UNION
+SELECT ProductName FROM Products_Discounted;
+
+
+13. Har yil bo‘yicha buyurtma summasining o‘rtacha qiymati:
+
+SELECT YEAR(OrderDate) AS OrderYear, AVG(TotalAmount) AS AvgOrderAmount
+FROM Orders
+GROUP BY YEAR(OrderDate);
+
+
+14. Narx oralig‘iga ko‘ra guruhlash:
+
+SELECT ProductName,
+       CASE
+            WHEN Price < 100 THEN 'Low'
+            WHEN Price BETWEEN 100 AND 500 THEN 'Mid'
+            ELSE 'High'
+       END AS PriceGroup
+FROM Products;
+
+
+15. Pivot qilib Population_Each_Year jadvalini yaratish:
+
+SELECT district_name, [2012], [2013]
+INTO Population_Each_Year
+FROM
+(SELECT district_name, population, year FROM city_population) AS src
+PIVOT (
+    SUM(population) FOR year IN ([2012], [2013])
+) AS p;
+
+
+16. Har bir mahsulot bo‘yicha umumiy savdo summasi:
+
+SELECT ProductID, SUM(SaleAmount) AS TotalSales
+FROM Sales
+GROUP BY ProductID;
+
+
+17. Nomi ichida oo bor productlar:
+
+SELECT ProductName
+FROM Products
+WHERE ProductName LIKE '%oo%';
+
+
+18. Pivot qilib Population_Each_City jadvalini yaratish:
+
+SELECT year, [Bektemir], [Chilonzor], [Yakkasaroy]
+INTO Population_Each_City
+FROM
+(SELECT district_name, population, year FROM city_population) AS src
+PIVOT (
+    SUM(population) FOR district_name IN ([Bektemir], [Chilonzor], [Yakkasaroy])
+) AS p;
+
+✅ Hard-Level Tasks
+
+19. Eng ko‘p faktura summasiga ega top-3 mijoz:
+
+SELECT TOP 3 CustomerID, SUM(TotalAmount) AS TotalSpent
+FROM Invoices
+GROUP BY CustomerID
+ORDER BY TotalSpent DESC;
+
+
+20. Population_Each_Year jadvalini qayta normal formatga o‘tkazish (UNPIVOT):
+
+SELECT district_name,
+       year,
+       population
+FROM Population_Each_Year
+UNPIVOT (
+    population FOR year IN ([2012], [2013])
+) AS unpvt;
+
+
+21. Mahsulot nomi va sotilgan soni (JOIN bilan):
+
+SELECT p.ProductName, COUNT(s.SaleID) AS TimesSold
+FROM Products p
+JOIN Sales s ON p.ProductID = s.ProductID
+GROUP BY p.ProductName;
+
+
+22. Population_Each_City jadvalini qayta normal formatga o‘tkazish (UNPIVOT):
+
+SELECT year, City, Population
+FROM Population_Each_City
+UNPIVOT (
+    Population FOR City IN ([Bektemir], [Chilonzor], [Yakkasaroy])
+) AS unpvt;
