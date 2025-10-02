@@ -1,81 +1,145 @@
-1️⃣ is_prime(n) funksiyasi (tub sonni tekshirish)
+-- 1
+ВЫБРАТЬ MIN(Цена) КАК MinPrice ИЗ Товары;
 
-SQL Server’da user-defined function (UDF) orqali yoziladi:
+-- 2
+ВЫБРАТЬ МАКС(Зарплата) КАК MaxSalary ИЗ Сотрудники;
 
-CREATE FUNCTION is_prime (@n INT)
-RETURNS BIT
-AS
-BEGIN
-    IF @n < 2 RETURN 0;
-    DECLARE @i INT = 2;
-    WHILE @i * @i <= @n
-    BEGIN
-        IF @n % @i = 0
-            RETURN 0;
-        SET @i = @i + 1;
-    END
-    RETURN 1;
-END;
-GO
+-- 3
+ВЫБЕРИТЕ COUNT(*) AS TotalCustomers FROM Customers;
 
--- Sinash
-SELECT dbo.is_prime(4) AS Result1, dbo.is_prime(7) AS Result2;
+-- 4
+ВЫБЕРИТЕ COUNT(DISTINCT Category) AS UniqueCategories FROM Products;
 
+-- 5
+ВЫБРАТЬ СУММУ(СуммаПродажи) КАК ВсегоПродаж
+ОТ ПРОДАЖ
+ГДЕ ProductID = 7;
 
-Natija:
+-- 6
+ВЫБЕРИТЕ AVG(Возраст) КАК AvgAge ИЗ Сотрудники;
 
-Result1 | Result2
---------+--------
-0       | 1
+-- 7
+ВЫБЕРИТЕ НазваниеОтдела, COUNT(*) AS КоличествоСотрудников
+ОТ сотрудников
+ГРУППИРОВАТЬ ПО Название отдела;
 
-2️⃣ digit_sum(k) funksiyasi (raqamlar yig‘indisi)
-CREATE FUNCTION digit_sum (@k INT)
-RETURNS INT
-AS
-BEGIN
-    DECLARE @sum INT = 0;
-    DECLARE @num INT = @k;
-    WHILE @num > 0
-    BEGIN
-        SET @sum = @sum + (@num % 10);
-        SET @num = @num / 10;
-    END
-    RETURN @sum;
-END;
-GO
+-- 8
+ВЫБЕРИТЕ категорию, MIN(цена) как MinPrice, MAX(цена) как MaxPrice
+ИЗ продуктов
+ГРУППИРОВАТЬ ПО КАТЕГОРИИ;
 
--- Sinash
-SELECT dbo.digit_sum(24) AS Sum1, dbo.digit_sum(502) AS Sum2;
+-- 9
+ВЫБРАТЬ CustomerID, SUM(SaleAmount) AS TotalSales
+ОТ ПРОДАЖ
+ГРУППИРОВАТЬ ПО CustomerID;
+
+-- 10
+ВЫБЕРИТЕ НазваниеОтдела, COUNT(*) AS КоличествоСотрудников
+ОТ сотрудников
+ГРУППИРОВАТЬ ПО НАЗВАНИЮ ОТДЕЛА
+ИМЕЮЩЕЕ КОЛИЧЕСТВО(*) > 5;
 
 
-Natija:
+-- 1
+ВЫБЕРИТЕ P.Категорию,
+СУММА(S.SaleAmount) AS TotalSales,
+AVG(S.SaleAmount) AS AvgSales
+ОТ ПРОДАЖ S
+ПРИСОЕДИНЯЙТЕСЬ к продуктам P ON S.ProductID = P.ProductID
+ГРУППИРОВАТЬ ПО P.Категории;
 
-Sum1 | Sum2
------+-----
-6    | 7
+-- 2
+ВЫБЕРИТЕ COUNT(*) AS NumEmployees
+ОТ сотрудников
+ГДЕ НазваниеОтдела = 'HR';
 
-3️⃣ Ikki sonning darajalari (2 ning darajalari)
+-- 3
+ВЫБЕРИТЕ Название отдела,
+МАКС(зарплата) КАК МаксЗарплата,
+MIN(зарплата) AS MinSalary
+ОТ сотрудников
+ГРУППИРОВАТЬ ПО Название отдела;
 
-Bu yerda WHILE loop ishlatamiz:
+-- 4
+ВЫБЕРИТЕ Название отдела,
+AVG(зарплата) AS AvgSalary
+ОТ сотрудников
+ГРУППИРОВАТЬ ПО Название отдела;
 
-CREATE PROCEDURE powers_of_two @N INT
-AS
-BEGIN
-    DECLARE @x INT = 2;
-    WHILE @x <= @N
-    BEGIN
-        PRINT CAST(@x AS VARCHAR(20));
-        SET @x = @x * 2;
-    END
-END;
-GO
+-- 5
+ВЫБЕРИТЕ Название отдела,
+AVG(зарплата) AS AvgSalary,
+COUNT(*) AS NumEmployees
+ОТ сотрудников
+ГРУППИРОВАТЬ ПО Название отдела;
 
--- Sinash
-EXEC powers_of_two 10;
+-- 6
+ВЫБЕРИТЕ категорию, СРЕДНЯЯ(цена) КАК Средн.Цена
+ИЗ продуктов
+ГРУППИРОВАТЬ ПО КАТЕГИИ
+ИМЕЮЩИЙ СРЕДНЮЮ(Цену) > 400;
+
+-- 7
+ВЫБЕРИТЕ ГОД(ДатаПродажи) КАК ГодПродажи,
+SUM(SaleAmount) AS TotalSales
+ОТ ПРОДАЖ
+ГРУППИРОВАТЬ ПО ГОДУ(ДатаПродажи);
+
+-- 8
+ВЫБЕРИТЕ CustomerID, COUNT(*) AS OrdersCount
+ИЗ заказов
+ГРУППИРОВАТЬ ПО ИДЕНТИФИКАТОРУ КЛИЕНТА
+ИМЕЕТ COUNT(*) >= 3;
+
+-- 9
+ВЫБЕРИТЕ Название отдела,
+AVG(зарплата) AS AvgSalary
+ОТ сотрудников
+ГРУППИРОВАТЬ ПО НАЗВАНИЮ ОТДЕЛА
+ИМЕЮЩИЙ СРЕДНЮЮ(зарплату) > 60000;
 
 
-Natija (PRINT orqali chiqadi):
 
-2
-4
-8
+-- 1
+ВЫБЕРИТЕ категорию, СРЕДНЯЯ(цена) КАК Средн.Цена
+ИЗ продуктов
+ГРУППИРОВАТЬ ПО КАТЕГИИ
+ИМЕЮЩИЙ СРЕДНЮЮ(Цену) > 150;
+
+-- 2
+ВЫБРАТЬ CustomerID, SUM(SaleAmount) AS TotalSales
+ОТ ПРОДАЖ
+ГРУППИРОВАТЬ ПО ИДЕНТИФИКАТОРУ КЛИЕНТА
+ИМЕЮ СУММУ(SaleAmount) > 1500;
+
+-- 3
+ВЫБЕРИТЕ Название отдела,
+СУММА(Зарплата) КАК ОбщаяЗарплата,
+AVG(зарплата) AS AvgSalary
+ОТ сотрудников
+ГРУППИРОВАТЬ ПО НАЗВАНИЮ ОТДЕЛА
+ИМЕЮЩИЙ СРЕДНЮЮ(зарплату) > 65000;
+
+-- 4 (TSQL2012 база керак болади, лекин умумий кориниши)
+ВЫБЕРИТЕ CustomerID,
+СУММА(Груз) КАК ОбщийГруз,
+MIN(Freight) AS LeastFreight
+ИЗ TSQL2012.Sales.Orders
+ГДЕ Груз > 50
+ГРУППИРОВАТЬ ПО CustomerID;
+
+-- 5
+ВЫБЕРИТЕ ГОД(ДатаЗаказа) КАК ГодЗаказа,
+МЕСЯЦ(ДатаЗаказа) КАКМесяцЗаказа,
+СУММА(ОбщаяСумма) КАК ВсегоПродаж,
+COUNT(DISTINCT ProductID) AS UniqueProducts
+ИЗ заказов
+ГРУППИРОВКА ПО ГОДУ(ДатаЗаказа), МЕСЯЦУ(ДатаЗаказа)
+HAVING COUNT(DISTINCT ProductID) >= 2;
+
+-- 6
+ВЫБЕРИТЕ ГОД(ДатаЗаказа) КАК ГодЗаказа,
+MIN(Количество) AS MinQuantity,
+MAX(Количество) AS MaxQuantity
+ИЗ заказов
+ГРУППИРОВАТЬ ПО ГОДУ(ДатаЗаказа);
